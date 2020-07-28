@@ -61,14 +61,20 @@ module Mitake
     # @since 0.1.0
     # @api private
     def delivery
+      @res ||= []
       return self if sent?
 
       self.class.execute(params) do |items|
+        @res << (items && items.first)
         attrs = items && items.first && items.first.slice(*self.class.attribute_names)
         assign_attributes(attrs)
       end
 
       self
+    end
+
+    def response
+      return @res if sent?
     end
 
     # Does message is sent
