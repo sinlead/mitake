@@ -52,9 +52,13 @@ module Mitake
     # @return [TrueClass|FalseClass] is the message duplicate
     attribute :duplicate, Boolean, readonly: true
 
-    # @!attribute [r] status_code
-    # @return [Integer] the status code
-    attribute :status_code, Integer, readonly: true
+    # @!attribute [r] sms_point_flag
+    # @return [TrueClass|FalseClass] is the message point flag
+    attribute :sms_point_flag, Boolean
+
+    # @!attribute [r] response
+    # @return [Response] the response
+    attribute :response, Response, readonly: true
 
     # Send message
     #
@@ -68,13 +72,10 @@ module Mitake
         @res << (items && items.first)
         attrs = items && items.first && items.first.slice(*self.class.attribute_names)
         assign_attributes(attrs)
+        @response = Response.new(items&.first)
       end
 
       self
-    end
-
-    def response
-      return @res if sent?
     end
 
     # Does message is sent
@@ -92,7 +93,7 @@ module Mitake
     #
     # @since 0.1.0
     def duplicate?
-      @duplicate == true
+      @response&.duplicate?
     end
 
     # Readable status code
@@ -101,7 +102,7 @@ module Mitake
     #
     # @since 0.1.0
     def status
-      Status::CODES[@status_code]
+      @response&.status
     end
 
     private
@@ -118,7 +119,8 @@ module Mitake
         vldtime: @expired_at && @expired_at.strftime('%Y%m%d%H%M%S'),
         dstaddr: @recipient.phone_number,
         destname: @recipient.name,
-        response: @webhook_url
+        response: @webhook_url,
+        smsPointFlag: @sms_point_flag.to_i == 1 ? 1 : 0
       }.reject { |_, v| v.nil? }.to_h
     end
   end
