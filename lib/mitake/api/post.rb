@@ -17,7 +17,7 @@ module Mitake
         return @request unless @request.nil?
 
         @request ||= Net::HTTP::Post.new(uri)
-        @request.body = URI.encode_www_form(params)
+        @request.set_form_data(params)
         @request
       end
     end
